@@ -1,0 +1,19 @@
+{
+  "name": "strawpoll-clone-backend",
+  "version": "0.0.1",
+  "description": "strawpoll clone with redis",
+  "main": "build/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/index.ts --exec 'ts-node'"
+  },
+  "author": "Jeong Yeon Cho",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.7",
+    "nodemon": "^2.0.4"
+  }
+}
