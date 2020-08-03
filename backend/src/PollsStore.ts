@@ -32,7 +32,7 @@ export default class PollsStore {
     });
   };
 
-  vote = async (id: string, item: string | number) => {
+  vote = async (id: string, item: number) => {
     if (!isUUID.anyNonNil(id)) {
       throw new Error("invalid id, is not uuid");
     }
