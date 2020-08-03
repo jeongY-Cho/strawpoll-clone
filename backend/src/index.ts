@@ -66,6 +66,10 @@ app.all("/*", (req, res) => {
   res.status(404).send("404");
 });
 
-app.listen(4000, () => {
-  console.log("listening on 4000");
-});
+export default app;
+
+if (require.main === module) {
+  app.listen(4000, () => {
+    console.log("listening on 4000");
+  });
+}
