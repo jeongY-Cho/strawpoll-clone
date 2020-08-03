@@ -28,7 +28,12 @@ export default class PollsStore {
   get = async (id: string) => {
     return await this.prisma.poll.findOne({
       where: { id },
-      include: { choices: true },
+      include: {
+        choices: {
+          orderBy: { id: "asc" },
+          select: { count: true, text: true },
+        },
+      },
     });
   };
 
