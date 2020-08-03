@@ -36,36 +36,19 @@ export default class PollsStore {
     if (!isUUID.anyNonNil(id)) {
       throw new Error("invalid id, is not uuid");
     }
-    console.log(id, item);
-    const poll = await this.prisma.poll.findOne({ where: { id } });
-    console.log(poll);
-    if (typeof item === "string") {
-      const choice = (
-        await this.prisma.choice.findMany({
-          where: { pollId: id, text: item },
-        })
-      )[0];
-      const updatedChoice = await this.prisma.choice.updateMany({
-        where: { pollId: id, text: item },
-        data: {
-          count: choice.count + 1,
-        },
-      });
+    const updated = await this.prisma.executeRaw(
+      "UPDATE Choice SET count = count + 1 WHERE id = (SELECT id FROM Choice WHERE pollId = $1 ORDER BY id LIMIT 1 OFFSET $2);",
+      id,
+      item
+    );
+    if (updated) {
+      const totalUpdated = await this.prisma.executeRaw(
+        "UPDATE Poll SET total = total + 1 WHERE id = $1",
+        id
+      );
+      return true;
     } else {
-      const choice = (
-        await this.prisma.choice.findMany({
-          orderBy: { id: "asc" },
-          where: { pollId: id },
-        })
-      )[item];
-      await this.prisma.choice.update({
-        where: { id: choice.id },
-        data: { count: choice.count + 1 },
-      });
+      return false;
     }
-    const tt = await this.prisma.poll.update({
-      where: { id },
-      data: { total: poll!.total + 1 },
-    });
   };
 }

@@ -17,15 +17,19 @@ app.get("/:id", async (req, res) => {
   }
 });
 
-app.post("/:id", bodyParser.text({ type: "*/*" }), (req, res) => {
-  const item = JSON.parse(req.body) as string | number;
+app.post("/:id", bodyParser.json(), async (req, res) => {
+  const item = req.body as { inc?: number; dec?: number };
 
-  const success = pollStore.vote(req.params.id, item);
+  try {
+    const success = await pollStore.vote(req.params.id, item.inc!);
 
-  if (success) {
-    res.send("ok");
-  } else {
-    res.status(400).send("invalid");
+    if (success) {
+      res.send("ok");
+    } else {
+      res.status(404).send("invalid poll id or choice index");
+    }
+  } catch (e) {
+    res.status(400).send(e.message);
   }
 });
 
