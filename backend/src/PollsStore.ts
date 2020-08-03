@@ -1,15 +1,22 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Poll } from "@prisma/client";
 import isUUID from "is-uuid";
 
-type NewPollOptions = {
+export type NewPollOptions = {
   prompt: string;
   choices: string[];
+};
+
+export type IPollAgg = Poll & {
+  choices: {
+    count: number;
+    text: string;
+  }[];
 };
 
 export default class PollsStore {
   prisma = new PrismaClient();
 
-  new = async (newPoll: NewPollOptions) => {
+  async new(newPoll: NewPollOptions): Promise<IPollAgg> {
     let ret = await this.prisma.poll.create({
       data: {
         prompt: newPoll.prompt,
@@ -22,10 +29,12 @@ export default class PollsStore {
       },
     });
 
-    return ret.id;
-  };
+    const poll = await this.get(ret.id);
+    if (!poll) throw new Error("no poll but it was just made");
+    return poll;
+  }
 
-  get = async (id: string) => {
+  async get(id: string) {
     return await this.prisma.poll.findOne({
       where: { id },
       include: {
@@ -35,9 +44,9 @@ export default class PollsStore {
         },
       },
     });
-  };
+  }
 
-  vote = async (id: string, item: number) => {
+  async vote(id: string, item: number) {
     if (!isUUID.anyNonNil(id)) {
       throw new Error("invalid id, is not uuid");
     }
@@ -55,5 +64,5 @@ export default class PollsStore {
     } else {
       return false;
     }
-  };
+  }
 }

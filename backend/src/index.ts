@@ -1,14 +1,15 @@
 import express from "express";
 import bodyParser from "body-parser";
-import PollStore from "./PollsStore";
+import PollStore from "./RedisPollStore";
 import cookieParser from "cookie-parser";
 
 require("dotenv").config();
 
 const app = express();
 app.use(cookieParser(process.env.COOKIE_SECRET));
+const REDIS_URL = "redis://localhost:6379";
 
-const pollStore = new PollStore();
+const pollStore = new PollStore(REDIS_URL);
 
 app.set("trust proxy", true);
 
