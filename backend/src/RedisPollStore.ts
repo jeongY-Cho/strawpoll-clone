@@ -10,6 +10,7 @@ export default class RedisPollsStore {
     return new Promise(async (resolve, reject) => {
       try {
         const poll = await this.DBI.new(newPoll);
+        this.cache(poll);
         this.redisClient.publish("poll:new", poll.id);
         resolve(poll);
       } catch (e) {
