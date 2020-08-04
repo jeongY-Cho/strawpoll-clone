@@ -1,17 +1,16 @@
 import DBController, { NewPollOptions, IPollAgg } from "./PollsStore";
 import redis from "redis";
 
-export default class RedisPollsStore extends DBController {
+export default class RedisPollsStore {
+  DBI = new DBController();
   redisClient = redis.createClient(this.redisURL);
-  constructor(public redisURL: string) {
-    super();
-  }
+  constructor(public redisURL: string) {}
 
   new(newPoll: NewPollOptions): Promise<IPollAgg> {
     return new Promise(async (resolve, reject) => {
       try {
-        const poll = await super.new(newPoll);
-
+        const poll = await this.DBI.new(newPoll);
+        this.redisClient.publish("poll:new", poll.id);
         resolve(poll);
       } catch (e) {
         reject(e);
@@ -26,7 +25,7 @@ export default class RedisPollsStore extends DBController {
         resolve(cached);
       } else {
         console.log("cache miss");
-        const poll = await super.get(id);
+        const poll = await this.DBI.get(id);
         if (poll) {
           resolve(poll);
           this.cache(poll);
@@ -39,17 +38,18 @@ export default class RedisPollsStore extends DBController {
 
   vote(id: string, item: number): Promise<boolean> {
     return new Promise((resolve, reject) => {
+      const countsKey = id + ":counts";
       this.redisClient
         .multi()
-        .hincrby(id + ":counts", "total", 1)
-        .hincrby(id + ":counts", "choice:" + item, 1)
+        .hincrby(countsKey, "total", 1)
+        .hincrby(countsKey, "choice:" + item, 1)
+        .hgetall(countsKey)
         .exec((err, results) => {
           if (err) {
             reject(err);
           } else {
-            console.log(results);
+            this.redisClient.PUBLISH(id, JSON.stringify(results[2]));
             resolve(true);
-            super.vote(id, item);
           }
         });
     });
