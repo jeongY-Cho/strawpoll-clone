@@ -12,8 +12,6 @@ export default class RedisPollsStore extends DBController {
       try {
         const poll = await super.new(newPoll);
 
-        this.cache(poll);
-
         resolve(poll);
       } catch (e) {
         reject(e);
