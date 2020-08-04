@@ -9,10 +9,15 @@ export default class RedisPollsStore extends DBController {
 
   new(newPoll: NewPollOptions): Promise<IPollAgg> {
     return new Promise(async (resolve, reject) => {
-      const poll = await super.new(newPoll);
+      try {
+        const poll = await super.new(newPoll);
 
-      this.cache(poll);
-      return poll;
+        this.cache(poll);
+
+        resolve(poll);
+      } catch (e) {
+        reject(e);
+      }
     });
   }
 
