@@ -111,7 +111,7 @@ export default class RedisPollsStore {
 
               while (true) {
                 const key = "choice:" + i;
-                if (!response[1][key]) {
+                if (!response[0][key]) {
                   break;
                 }
 
