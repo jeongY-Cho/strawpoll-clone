@@ -37,6 +37,8 @@ const validateVote: express.RequestHandler = (req, res, next) => {
   }
 };
 
+const expiresDate = new Date(2147483647000);
+
 app.post("/:id", validateVote, bodyParser.json(), async (req, res) => {
   const item = req.body as { inc?: number; dec?: number };
 
@@ -48,7 +50,7 @@ app.post("/:id", validateVote, bodyParser.json(), async (req, res) => {
         path: req.path,
         secure: true,
         httpOnly: true,
-        expires: new Date(2147483647000),
+        expires: expiresDate,
         signed: true,
       });
 
