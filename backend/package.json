@@ -5,7 +5,8 @@
   "main": "build/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/index.ts --exec 'ts-node'"
+    "dev": "nodemon src/index.ts --exec 'ts-node'",
+    "start": "node build/index.js"
   },
   "author": "Jeong Yeon Cho",
   "license": "MIT",
