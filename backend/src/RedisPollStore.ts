@@ -39,19 +39,27 @@ export default class RedisPollsStore {
   vote(id: string, item: number): Promise<boolean> {
     return new Promise((resolve, reject) => {
       const countsKey = id + ":counts";
-      this.redisClient
-        .multi()
-        .hincrby(countsKey, "total", 1)
-        .hincrby(countsKey, "choice:" + item, 1)
-        .hgetall(countsKey)
-        .exec((err, results) => {
-          if (err) {
-            reject(err);
-          } else {
-            this.redisClient.PUBLISH(id, JSON.stringify(results[2]));
-            resolve(true);
-          }
-        });
+      const choiceKey = "choice:" + item;
+      this.redisClient.hexists(countsKey, choiceKey, (err, response) => {
+        if (err) reject(err);
+        else if (response) {
+          this.redisClient
+            .multi()
+            .hincrby(countsKey, "total", 1)
+            .hincrby(countsKey, choiceKey, 1)
+            .hgetall(countsKey)
+            .exec((err, results) => {
+              if (err) {
+                reject(err);
+              } else {
+                this.redisClient.PUBLISH(id, JSON.stringify(results[2]));
+                resolve(true);
+              }
+            });
+        } else {
+          reject(new Error("item out of range"));
+        }
+      });
     });
   }
 
