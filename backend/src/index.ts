@@ -29,6 +29,7 @@ const validateVote: express.RequestHandler = (req, res, next) => {
   if (process.env.BYPASS === "TRUE") {
     next();
   } else {
+    console.log(req.cookies, req.signedCookies)
     if (JSON.stringify(req.signedCookies.status)) {
       res.status(400).send("already voted");
     } else {
@@ -46,7 +47,7 @@ app.post("/:id", validateVote, bodyParser.json(), async (req, res) => {
     if (success) {
       res.cookie("status", JSON.stringify(item), {
         path: req.path,
-        // secure: true,
+        secure: true,
         httpOnly: true,
         expires: new Date(2147483647000),
         signed: true,

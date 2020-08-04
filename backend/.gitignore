@@ -1,4 +1,7 @@
+build
 node_modules
 .env
 dump.rdb
 dev.db
+redis.conf
+
