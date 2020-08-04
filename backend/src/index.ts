@@ -7,9 +7,12 @@ require("dotenv").config();
 
 const app = express();
 app.use(cookieParser(process.env.COOKIE_SECRET));
-const REDIS_URL = "redis://localhost:6379";
 
-const pollStore = new PollStore(REDIS_URL);
+if (!process.env.REDIS_URL) {
+  throw new Error("no process.env.REDIS_URL");
+}
+
+const pollStore = new PollStore(process.env.REDIS_URL);
 
 app.set("trust proxy", true);
 
@@ -23,11 +26,11 @@ app.get("/:id", async (req, res) => {
 });
 
 const validateVote: express.RequestHandler = (req, res, next) => {
-  if (JSON.stringify(req.signedCookies.status)) {
-    res.status(400).send("already voted");
-  } else {
-    next();
-  }
+  next();
+  // if (JSON.stringify(req.signedCookies.status)) {
+  //   res.status(400).send("already voted");
+  // } else {
+  // }
 };
 
 app.post("/:id", validateVote, bodyParser.json(), async (req, res) => {
@@ -70,7 +73,7 @@ app.all("/*", (req, res) => {
 export default app;
 
 if (require.main === module) {
-  app.listen(4000, () => {
-    console.log("listening on 4000");
+  app.listen(process.env.PORT || 4000, () => {
+    console.log(`listening on ${process.env.PORT}`);
   });
 }
