@@ -26,11 +26,15 @@ app.get("/:id", async (req, res) => {
 });
 
 const validateVote: express.RequestHandler = (req, res, next) => {
-  next();
-  // if (JSON.stringify(req.signedCookies.status)) {
-  //   res.status(400).send("already voted");
-  // } else {
-  // }
+  if (process.env.BYPASS === "TRUE") {
+    next();
+  } else {
+    if (JSON.stringify(req.signedCookies.status)) {
+      res.status(400).send("already voted");
+    } else {
+      next();
+    }
+  }
 };
 
 app.post("/:id", validateVote, bodyParser.json(), async (req, res) => {
