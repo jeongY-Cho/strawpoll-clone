@@ -59,7 +59,7 @@ app.post("/:id", validateVote, bodyParser.json(), async (req, res) => {
 
       res.send("ok");
     } else {
-      res.status(404).send("invalid poll id or choice index");
+      res.status(404).send("invalid poll id");
     }
   } catch (e) {
     res.status(400).send(e.message);
