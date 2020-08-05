@@ -39,7 +39,7 @@ export default class PollsStore {
       where: { id },
       include: {
         choices: {
-          orderBy: { id: "asc" },
+          orderBy: { id: "ASC" },
           select: { count: true, text: true },
         },
       },
@@ -64,5 +64,32 @@ export default class PollsStore {
     } else {
       return false;
     }
+  }
+
+  async push(id: string, counts: { [key: string]: any }) {
+    const choices = await this.prisma.choice.findMany({
+      where: { pollId: id },
+      orderBy: { id: "ASC" },
+    });
+
+    let updates: any[] = [];
+
+    updates.push(
+      this.prisma.poll.update({
+        where: { id },
+        data: { total: parseInt(counts.total) },
+      })
+    );
+
+    for (let i in choices) {
+      const choiceKey = "choice:" + i;
+      const update = this.prisma.choice.update({
+        where: { id: choices[i].id },
+        data: { count: parseInt(counts[choiceKey]) },
+      });
+      updates.push(update);
+    }
+    console.log("writeBehind", id);
+    return this.prisma.transaction(updates);
   }
 }

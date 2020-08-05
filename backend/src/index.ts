@@ -2,6 +2,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import PollStore from "./RedisPollStore";
 import cookieParser from "cookie-parser";
+import WriteBehind from "./WriteBehind";
 
 require("dotenv").config();
 
@@ -13,6 +14,8 @@ if (!process.env.REDIS_URL) {
 }
 
 const pollStore = new PollStore(process.env.REDIS_URL);
+const writeBehind = new WriteBehind(process.env.REDIS_URL);
+writeBehind.start("writeBehind");
 
 app.set("trust proxy", true);
 

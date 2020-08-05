@@ -54,6 +54,7 @@ export default class RedisPollsStore {
                 reject(err);
               } else {
                 this.redisClient.PUBLISH(id, JSON.stringify(results[2]));
+                this.redisClient.zincrby("writeBehind", 1, id);
                 resolve(true);
               }
             });
