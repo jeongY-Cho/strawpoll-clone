@@ -39,7 +39,7 @@ export default class PollsStore {
       where: { id },
       include: {
         choices: {
-          orderBy: { id: "ASC" },
+          orderBy: { id: "asc" },
           select: { count: true, text: true },
         },
       },
@@ -69,7 +69,7 @@ export default class PollsStore {
   async push(id: string, counts: { [key: string]: any }) {
     const choices = await this.prisma.choice.findMany({
       where: { pollId: id },
-      orderBy: { id: "ASC" },
+      orderBy: { id: "asc" },
     });
 
     let updates: any[] = [];
