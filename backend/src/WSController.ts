@@ -119,7 +119,7 @@ const WSMiddleware = (wss?: WS.Server) => {
     // @ts-ignore || upgrade to a webSocket
     wss!.handleUpgrade(req, req.socket, Buffer.from(""), async (client) => {
       // get poll from id
-      const poll = await cache.get(req.params.id);
+      const poll = await cache.getRaw(req.params.id);
 
       // if poll doesn't exist send an error message and close the socket
       if (!poll) {
@@ -128,7 +128,7 @@ const WSMiddleware = (wss?: WS.Server) => {
       }
 
       // if poll exists send initial payload then pass to channelManager
-      client.send(JSON.stringify(transformPoll(poll)));
+      client.send(JSON.stringify(poll));
 
       // @ts-expect-error || some typing thing
       channelManager.add(req.params.id, client);
@@ -137,15 +137,3 @@ const WSMiddleware = (wss?: WS.Server) => {
 };
 
 wsapp.all<{ id: string }>("/:id", WSMiddleware());
-
-// function to transform poll object back into raw cache object
-// TODO: probably should make a get raw method on cache object
-function transformPoll(poll: IPollAgg) {
-  return {
-    total: poll.total,
-    ...poll.choices.reduce((acc, cur, i) => {
-      acc["choice:" + i] = cur.count;
-      return acc;
-    }, {} as { [key: string]: number }),
-  };
-}

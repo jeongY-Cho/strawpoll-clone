@@ -38,6 +38,36 @@ export default class RedisPollsStore {
     });
   }
 
+  getRaw(id: string): Promise<{ [key: string]: number } | null> {
+    return new Promise((resolve, reject) => {
+      this.redisClient.exists(id, (err, response) => {
+        if (response) {
+          this.redisClient.hgetall(id + ":counts", (err, results) => {
+            if (err) return reject(err);
+
+            resolve(
+              Object.keys(results).reduce((acc, curr) => {
+                acc[curr] = parseInt(results[curr]);
+                return acc;
+              }, {} as { [key: string]: number })
+            );
+          });
+        } else {
+          this.get(id).then((poll) => {
+            if (!poll) return resolve(null);
+            resolve({
+              total: poll.total,
+              ...poll.choices.reduce((acc, cur, i) => {
+                acc["choice:" + i] = cur.count;
+                return acc;
+              }, {} as { [key: string]: number }),
+            });
+          });
+        }
+      });
+    });
+  }
+
   vote(id: string, item: number): Promise<boolean> {
     return new Promise((resolve, reject) => {
       const countsKey = id + ":counts";
