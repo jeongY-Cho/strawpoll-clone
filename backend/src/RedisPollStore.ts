@@ -1,5 +1,6 @@
 import DBController, { NewPollOptions, IPollAgg } from "./PollsStore";
 import redis from "redis";
+import { response } from "express";
 
 export default class RedisPollsStore {
   DBI = new DBController();
@@ -41,26 +42,35 @@ export default class RedisPollsStore {
     return new Promise((resolve, reject) => {
       const countsKey = id + ":counts";
       const choiceKey = "choice:" + item;
-      this.redisClient.hexists(countsKey, choiceKey, (err, response) => {
-        if (err) reject(err);
-        else if (response) {
-          this.redisClient
-            .multi()
-            .hincrby(countsKey, "total", 1)
-            .hincrby(countsKey, choiceKey, 1)
-            .hgetall(countsKey)
-            .exec((err, results) => {
-              if (err) {
-                reject(err);
-              } else {
-                this.redisClient.PUBLISH(id, JSON.stringify(results[2]));
-                this.redisClient.zincrby("writeBehind", 1, id);
-                resolve(true);
-              }
-            });
-        } else {
-          reject(new Error("item out of range"));
+      this.redisClient.exists(countsKey, async (err, response) => {
+        if (!response) {
+          const res = await this.get(id);
+          if (!res) {
+            resolve(false);
+            return;
+          }
         }
+        this.redisClient.hexists(countsKey, choiceKey, (err, response) => {
+          if (err) reject(err);
+          else if (response) {
+            this.redisClient
+              .multi()
+              .hincrby(countsKey, "total", 1)
+              .hincrby(countsKey, choiceKey, 1)
+              .hgetall(countsKey)
+              .exec((err, results) => {
+                if (err) {
+                  reject(err);
+                } else {
+                  this.redisClient.PUBLISH(id, JSON.stringify(results[2]));
+                  this.redisClient.zincrby("writeBehind", 1, id);
+                  resolve(true);
+                }
+              });
+          } else {
+            reject(new Error("item out of range"));
+          }
+        });
       });
     });
   }
