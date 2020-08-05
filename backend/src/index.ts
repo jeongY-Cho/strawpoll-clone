@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 import PollStore from "./RedisPollStore";
 import cookieParser from "cookie-parser";
 import WriteBehind from "./WriteBehind";
+import WSController from "./WSController";
 
 require("dotenv").config();
 
@@ -70,6 +71,8 @@ app.put("/new", bodyParser.json(), async (req, res) => {
   const newId = await pollStore.new(req.body);
   res.send(newId);
 });
+
+app.use("/live", WSController);
 
 app.all("/", (req, res) => {
   res.send("ok");
