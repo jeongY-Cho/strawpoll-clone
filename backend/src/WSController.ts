@@ -51,9 +51,16 @@ class WSMessenger {
 class ChannelManager {
   channels: { [key: string]: WSMessenger } = {};
 
-  constructor(public redis_url: string) {}
+  constructor(
+    public redis_url: string,
+    public custom_mapping: { [key: string]: string } = {}
+  ) {}
 
   add(channel: string, client: WS) {
+    if (this.custom_mapping[channel]) {
+      channel = this.custom_mapping[channel];
+    }
+
     if (!this.channels[channel]) {
       this.channels[channel] = new WSMessenger(
         channel,
@@ -73,7 +80,9 @@ class ChannelManager {
 
 const WSMiddleware = (wss?: WS.Server) => {
   const cache = new Cache(process.env.REDIS_URL!);
-  const channelManager = new ChannelManager(process.env.REDIS_URL!);
+  const channelManager = new ChannelManager(process.env.REDIS_URL!, {
+    new: "poll:new",
+  });
   if (!wss) {
     wss = new WS.Server({ noServer: true });
   }
