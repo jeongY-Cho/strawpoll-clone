@@ -1,7 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 import stringifyFactory from "fast-json-stringify";
-import PollStore from "./RedisPollStore";
+import Cache from "./RedisPollStore";
 import cookieParser from "cookie-parser";
 import WriteBehind from "./WriteBehind";
 import WSController from "./WSController";
@@ -15,26 +15,37 @@ if (!process.env.REDIS_URL) {
   throw new Error("no process.env.REDIS_URL");
 }
 
-const pollStore = new PollStore(process.env.REDIS_URL);
+// redis cache interface
+const cache = new Cache(process.env.REDIS_URL);
+
+// db writebehind manager
 const writeBehind = new WriteBehind(process.env.REDIS_URL);
 writeBehind.start("writeBehind");
 
-app.set("trust proxy", true);
+// uncomment to get ips
+// app.set("trust proxy", true);
 
+// get a poll
 app.get("/:id", async (req, res) => {
   try {
-    let poll = Object.assign({}, await pollStore.get(req.params.id));
+    // get poll object
+    let poll = Object.assign({}, await cache.get(req.params.id));
     res.send(poll);
   } catch (e) {
+    // return 404 if id not found
     res.status(404).send(e);
   }
 });
 
+// check cookie for votes if voted before send error
 const validateVote: express.RequestHandler = (req, res, next) => {
   if (process.env.BYPASS === "TRUE") {
     next();
   } else {
-    if (req.signedCookies.status) {
+    if (
+      req.signedCookies.status &&
+      req.signedCookies.status.id === req.params.id
+    ) {
       res.status(400).send("already voted");
     } else {
       next();
@@ -42,8 +53,10 @@ const validateVote: express.RequestHandler = (req, res, next) => {
   }
 };
 
+// date object: set at 2030, used for cookie expiry
 const expiresDate = new Date(2147483647000);
 
+// json-fast-stringify schema
 const stringify = stringifyFactory({
   type: "object",
   properties: {
@@ -59,6 +72,7 @@ const stringify = stringifyFactory({
   },
 });
 
+// post an update to a poll
 app.post("/:id", validateVote, bodyParser.json(), async (req, res) => {
   const item = { ...req.body, id: req.params.id } as {
     inc?: number;
@@ -66,7 +80,7 @@ app.post("/:id", validateVote, bodyParser.json(), async (req, res) => {
     id: string;
   };
   try {
-    const success = await pollStore.vote(req.params.id, item.inc!);
+    const success = await cache.vote(req.params.id, item.inc!);
 
     if (success) {
       res.cookie("status", stringify(item), {
@@ -86,24 +100,30 @@ app.post("/:id", validateVote, bodyParser.json(), async (req, res) => {
   }
 });
 
+// put request for a new poll
 app.put("/new", bodyParser.json(), async (req, res) => {
-  const newId = await pollStore.new(req.body);
+  const newId = await cache.new(req.body);
   res.send(newId);
 });
 
+// endpoint for websockets
 app.use("/live", WSController);
 
+// empty endpoint for healthcheck
 app.all("/", (req, res) => {
   res.send("ok");
 });
 
+// all other endpoints are 404
 app.all("/*", (req, res) => {
-  res.status(404).send("404");
+  res.sendStatus(404);
 });
 
+// export as sub-application
 export default app;
 
 if (require.main === module) {
+  // run if main
   app.listen(process.env.PORT || 4000, () => {
     console.log(`listening on ${process.env.PORT}`);
   });
