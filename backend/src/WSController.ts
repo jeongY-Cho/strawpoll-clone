@@ -4,7 +4,6 @@ import fastStringify from "fast-json-stringify";
 
 import redis from "redis";
 import Cache from "./RedisPollStore";
-import { IPollAgg } from "./PollsStore";
 
 require("dotenv").config();
 
@@ -43,9 +42,13 @@ class WSMessenger {
 
   // add client to set of clients
   add(client: WS) {
+    this.clients.add(client);
     // @ts-expect-error || custom heartbeat implementation
     client.isAlive = true;
-    this.clients.add(client);
+    client.once("pong", () => {
+      // @ts-expect-error || custom heartbeat implementation
+      client.isAlive = true;
+    });
     // @ts-expect-error || custom heartbeat interval
     client.heartbeat = setInterval(() => {
       this.heartbeat(client);
@@ -87,13 +90,9 @@ class WSMessenger {
   }
 
   heartbeat(client: WS) {
-    client.once("pong", () => {
-      // @ts-expect-error || custom heartbeat implementation
-      client.isAlive = true;
-    });
+    // @ts-expect-error || custom heartbeat implementation
+    client.isAlive = false;
     client.ping(undefined, undefined, (err) => {
-      // @ts-expect-error || custom heartbeat implementation
-      client.isAlive = false;
       if (err) {
         console.log("err on heartbeat, will close");
         client.emit("close");
