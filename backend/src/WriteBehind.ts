@@ -1,5 +1,4 @@
 import redis from "redis";
-import { PrismaClient } from "@prisma/client";
 import DBConnector from "./PollsStore";
 
 export default class WriteBehind {

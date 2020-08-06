@@ -1,5 +1,6 @@
 import express from "express";
 import * as WS from "ws";
+import fastStringify from "fast-json-stringify";
 
 import redis from "redis";
 import Cache from "./RedisPollStore";
@@ -9,6 +10,15 @@ require("dotenv").config();
 
 const wsapp = express();
 export default wsapp;
+
+const stringify = fastStringify({
+  type: "object",
+  patternProperties: {
+    ".*": {
+      type: "number",
+    },
+  },
+});
 
 class WSMessenger {
   // redis client
@@ -23,7 +33,9 @@ class WSMessenger {
   ) {
     // send the payload to all clients in clients set
     this.redisClient.on("message", (channel, message) => {
-      this.send(message);
+      let strIntRegex = /"(\d+)"/g;
+
+      this.send(message.replace(strIntRegex, "$1"));
     });
     // start listening for updates
     this.listen();
@@ -130,7 +142,7 @@ const WSMiddleware = (wss?: WS.Server) => {
       }
 
       // if poll exists send initial payload then pass to channelManager
-      client.send(JSON.stringify(poll));
+      client.send(stringify(poll));
 
       // @ts-expect-error || some typing thing
       channelManager.add(req.params.id, client);

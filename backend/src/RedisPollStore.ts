@@ -1,11 +1,19 @@
 import DBController, { NewPollOptions, IPollAgg } from "./PollsStore";
 import redis from "redis";
-import { response } from "express";
+import fastStringify from "fast-json-stringify";
 
 export default class RedisPollsStore {
   DBI = new DBController();
   redisClient = redis.createClient(this.redisURL);
   constructor(public redisURL: string) {}
+  stringify = fastStringify({
+    type: "object",
+    patternProperties: {
+      ".*": {
+        type: "string",
+      },
+    },
+  });
 
   new(newPoll: NewPollOptions): Promise<IPollAgg> {
     return new Promise(async (resolve, reject) => {
@@ -94,7 +102,7 @@ export default class RedisPollsStore {
                 } else {
                   this.redisClient.PUBLISH(
                     "vote:" + id,
-                    JSON.stringify(results[2])
+                    this.stringify(results[2])
                   );
                   this.redisClient.zincrby("writeBehind", 1, id);
                   resolve(true);

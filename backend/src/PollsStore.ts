@@ -90,6 +90,6 @@ export default class PollsStore {
       updates.push(update);
     }
     console.log("writeBehind", id);
-    return this.prisma.transaction(updates);
+    return this.prisma.$transaction(updates);
   }
 }

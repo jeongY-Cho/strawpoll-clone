@@ -1,5 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
+import stringifyFactory from "fast-json-stringify";
 import PollStore from "./RedisPollStore";
 import cookieParser from "cookie-parser";
 import WriteBehind from "./WriteBehind";
@@ -33,7 +34,7 @@ const validateVote: express.RequestHandler = (req, res, next) => {
   if (process.env.BYPASS === "TRUE") {
     next();
   } else {
-    if (JSON.stringify(req.signedCookies.status)) {
+    if (req.signedCookies.status) {
       res.status(400).send("already voted");
     } else {
       next();
@@ -43,14 +44,32 @@ const validateVote: express.RequestHandler = (req, res, next) => {
 
 const expiresDate = new Date(2147483647000);
 
-app.post("/:id", validateVote, bodyParser.json(), async (req, res) => {
-  const item = req.body as { inc?: number; dec?: number };
+const stringify = stringifyFactory({
+  type: "object",
+  properties: {
+    inc: {
+      type: "number",
+    },
+    dec: {
+      type: "number",
+    },
+    id: {
+      type: "number",
+    },
+  },
+});
 
+app.post("/:id", validateVote, bodyParser.json(), async (req, res) => {
+  const item = { ...req.body, id: req.params.id } as {
+    inc?: number;
+    dec?: number;
+    id: string;
+  };
   try {
     const success = await pollStore.vote(req.params.id, item.inc!);
 
     if (success) {
-      res.cookie("status", JSON.stringify(item), {
+      res.cookie("status", stringify(item), {
         path: req.path,
         secure: true,
         httpOnly: true,
