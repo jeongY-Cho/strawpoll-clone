@@ -43,9 +43,18 @@ class WSMessenger {
 
   // add client to set of clients
   add(client: WS) {
+    // @ts-expect-error || custom heartbeat implementation
+    client.isAlive = true;
     this.clients.add(client);
+    // @ts-expect-error || custom heartbeat interval
+    client.heartbeat = setInterval(() => {
+      this.heartbeat(client);
+    }, 10 * 1000);
     // remove client from list when close
     client.on("close", () => {
+      console.log("close");
+      // @ts-expect-error || custom heartbeat interval
+      clearInterval(client.heartbeat);
       this.remove(client);
     });
   }
@@ -63,13 +72,33 @@ class WSMessenger {
   // send payload to all clients on this channel
   send(payload: string) {
     for (const client of this.clients) {
-      client.send(payload);
+      // @ts-expect-error || custom heartbeat implementation
+      if (client.isAlive) {
+        client.send(payload);
+      } else {
+        client.emit("close");
+      }
     }
   }
 
   // subscribe to vote channel
   listen() {
     this.redisClient.subscribe("vote:" + this.id);
+  }
+
+  heartbeat(client: WS) {
+    client.once("pong", () => {
+      // @ts-expect-error || custom heartbeat implementation
+      client.isAlive = true;
+    });
+    client.ping(undefined, undefined, (err) => {
+      // @ts-expect-error || custom heartbeat implementation
+      client.isAlive = false;
+      if (err) {
+        console.log("err on heartbeat, will close");
+        client.emit("close");
+      }
+    });
   }
 }
 
