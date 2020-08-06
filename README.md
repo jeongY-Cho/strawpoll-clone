@@ -19,7 +19,7 @@ This is the backend api code for this strawpoll clone. It uses express as http s
 - **BYPASS** when == TRUE then will bypass vote check.
   - useful for debugging
 
-4. setup prisma database source. ref: https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-sources/
+4. setup prisma database source. ref: https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-sources/. Don't touch anything else.
 
 5. run proper migrations for database
 
