@@ -5,6 +5,8 @@ import redis from "redis";
 import Cache from "./RedisPollStore";
 import { IPollAgg } from "./PollsStore";
 
+require("dotenv").config();
+
 const wsapp = express();
 export default wsapp;
 
