@@ -5,6 +5,7 @@ import Cache from "./RedisPollStore";
 import cookieParser from "cookie-parser";
 import WriteBehind from "./WriteBehind";
 import WSController from "./WSController";
+import cors from "cors"
 
 require("dotenv").config();
 
@@ -14,6 +15,9 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 if (!process.env.REDIS_URL) {
   throw new Error("no process.env.REDIS_URL");
 }
+
+app.use(cors())
+
 
 // redis cache interface
 const cache = new Cache(process.env.REDIS_URL);
