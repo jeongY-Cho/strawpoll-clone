@@ -45,7 +45,7 @@ class WSMessenger {
     this.clients.add(client);
     // @ts-expect-error || custom heartbeat implementation
     client.isAlive = true;
-    client.once("pong", () => {
+    client.on("pong", () => {
       // @ts-expect-error || custom heartbeat implementation
       client.isAlive = true;
     });
