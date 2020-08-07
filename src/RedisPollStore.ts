@@ -163,7 +163,7 @@ export default class Cache {
           poll.createdAt.getTime(),
           ...mapping.choices
         )
-        .hmset(poll.id + ":counts", "total", 0, ...mapping.counts)
+        .hmset(poll.id + ":counts", "total", poll.total, ...mapping.counts)
         .exec((err, replies) => {
           if (err) {
             reject(err);
