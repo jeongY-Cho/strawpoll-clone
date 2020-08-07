@@ -56,7 +56,7 @@ Request Body:
   }
 ```
 
-Returns the id of the created poll.
+Returns the new poll object (schema same as poll get request below).
 
 ### `GET` /{id}
 
