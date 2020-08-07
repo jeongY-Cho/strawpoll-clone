@@ -207,7 +207,7 @@ export default class Cache {
 
               let retObj: IPollAgg = {
                 prompt: response[0].prompt,
-                createdAt: response[0].createdAt,
+                createdAt: new Date(response[0].createdAt),
                 id,
                 total: response[1].total,
                 choices,
