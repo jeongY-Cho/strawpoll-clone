@@ -5,3 +5,4 @@ dump.rdb
 dev.db
 redis.conf
 
+.vscode
