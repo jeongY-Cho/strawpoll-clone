@@ -24,6 +24,7 @@ export default class DBConnector {
     const filteredId = newPoll.id
       ?.replace(/ /g, "-")
       .replace(/-+/g, "-")
+      .replace(/-$/, "")
       .replace(/[^a-zA-Z0-9-_]/gi, "")
       .toLowerCase()
       .trim();
