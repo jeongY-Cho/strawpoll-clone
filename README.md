@@ -116,7 +116,8 @@ Healthcheck endpoint. Will always return 200.
 
 Websocket endpoint for live updates. Any updates to a poll at {id} will be pushed through this websocket endpoint. 
 Useful for live updates of polls. 
-Messages:
+
+Message Schema:
 ```
    {
       total: number,
