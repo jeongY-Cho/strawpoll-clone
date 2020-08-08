@@ -47,11 +47,20 @@ app.listen(4000);
 
 Creates a new poll.
 
+`id` property is an optional property to specify custom ID's for polls.
+   - valid characters are 0-9, a-z and hyphen.
+   - invalid characters will be stripped from custom ID.
+   - spaces will be replaced with hyphens.
+   - multiple hyphens will be replaced with one hyphen.
+   - __*Important:*__ if a custom ID is already taken the api will append a random 3 digit code to the end.
+      - check if ID's exist if you want to prevent this behavior. 
+
 Request Body:
 
 ```typescript
   schema {
     prompt: string,
+    id?: string
     choices: Array<string>
   }
 ```
