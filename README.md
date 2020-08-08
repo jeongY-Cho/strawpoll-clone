@@ -4,6 +4,7 @@ This is the backend api code for this strawpoll clone.
 It uses express as http server, redis for caching and prisma client as orm. 
 It uses "permanent" cookies (ie. expiring in 2030) to track voting. 
 No server side tracking of ips (though plans to implement ip tracking for vote counts are planned).
+See it in action @ https://strawpoll.jeongyeoncho.com
 
 ## Usage
 
