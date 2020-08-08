@@ -92,7 +92,7 @@ Return:
   }
 ```
 
-Choice order will be consistent with the order in which the poll was created.
+**Note:** Choice order will always be consistent with the order in which the poll was created.
 
 ### `POST` /{id}
 
@@ -113,6 +113,20 @@ the value for inc should be the zero-indexed index of the choice.
 Healthcheck endpoint. Will always return 200.
 
 ### `websocket` /live/{id}
+
+Websocket endpoint for live updates. Any updates to a poll at {id} will be pushed through this websocket endpoint. 
+Useful for live updates of polls. 
+Messages:
+```
+   {
+      total: number,
+      choice:0: number,
+      choice:1: number,
+      ...
+      choice:n: number, // where n is the count of choices minus 1. 
+   }
+```
+choice numbers will always be consistent with the order in which the choices were ordered on poll creation.
 
 ## Note
 
