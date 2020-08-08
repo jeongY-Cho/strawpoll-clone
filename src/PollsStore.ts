@@ -1,9 +1,11 @@
 import { PrismaClient, Poll } from "@prisma/client";
-import isUUID from "is-uuid";
+import { customAlphabet } from "nanoid";
+const nanoid = customAlphabet("0123456789abcdefhijklmnopqrstuvwxyz", 5);
 
 export type NewPollOptions = {
   prompt: string;
   choices: string[];
+  id?: string;
 };
 
 export type IPollAgg = Poll & {
@@ -19,22 +21,40 @@ export default class DBConnector {
 
   // creates a new poll and creates related choices
   async new(newPoll: NewPollOptions): Promise<IPollAgg> {
-    let ret = await this.prisma.poll.create({
-      data: {
-        prompt: newPoll.prompt,
-        choices: {
-          create: newPoll.choices.reduce((acc, cur) => {
-            acc.push({ text: cur });
-            return acc;
-          }, [] as { text: string }[]),
+    const filteredId = newPoll.id
+      ?.replace(/ /g, "-")
+      .replace(/-+/g, "-")
+      .replace(/[^a-zA-Z0-9-_]/gi, "")
+      .toLowerCase()
+      .trim();
+    try {
+      let ret = await this.prisma.poll.create({
+        data: {
+          prompt: newPoll.prompt,
+          id: filteredId || nanoid(),
+          choices: {
+            create: newPoll.choices.reduce((acc, cur) => {
+              acc.push({ text: cur });
+              return acc;
+            }, [] as { text: string }[]),
+          },
         },
-      },
-    });
+      });
 
-    // retrieve the new project for the default assigned items
-    const poll = await this.get(ret.id);
-    if (!poll) throw new Error("no poll but it was just made");
-    return poll;
+      // retrieve the new project for the default assigned items
+      const poll = await this.get(ret.id);
+      if (!poll) throw new Error("no poll but it was just made");
+      return poll;
+    } catch (e) {
+      if (e.code === "P2002") {
+        if (newPoll.id) {
+          newPoll.id =
+            newPoll.id.toLowerCase() + "-" + customAlphabet("0123456789", 3)();
+        }
+        return this.new(newPoll);
+      }
+      throw e;
+    }
   }
 
   // get a poll object
@@ -54,11 +74,7 @@ export default class DBConnector {
 
   // vote on a choice
   async vote(id: string, item: number) {
-    // check that id is actually a uuid and not a sql injection
-    if (!isUUID.anyNonNil(id)) {
-      throw new Error("invalid id, is not uuid");
-    }
-    // check that item is a number and not a sql injection
+    // check that item is a number
     if (typeof item !== "number") {
       throw new Error("invalid item");
     }
