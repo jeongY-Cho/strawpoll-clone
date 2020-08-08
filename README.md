@@ -57,7 +57,7 @@ Creates a new poll.
    - spaces will be replaced with hyphens.
    - multiple hyphens will be replaced with one hyphen.
    - __*Important:*__ if a custom ID is already taken the api will append a random 3 digit code to the end.
-      - check if ID's exist if you want to prevent this behavior. 
+      - check if ID's exists with a get request to`/{id}` if you want to prevent this behavior. 
 
 Request Body:
 
