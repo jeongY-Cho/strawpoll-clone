@@ -3,7 +3,7 @@
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_FILE")
+  url = "***"
 }
 
 generator client {
@@ -17,7 +17,7 @@ model Poll {
   prompt    String
   choices   Choice[]
   total     Int      @default(0)
-  customId  String?  @unique
+  customStr String?
 }
 
 model Choice {

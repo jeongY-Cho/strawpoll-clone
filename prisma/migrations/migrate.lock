@@ -1,3 +1,6 @@
 # Prisma Migrate lockfile v1
 
 20200803002005-create-db
+20200807233441-add-custom-str
+20200807233732-make-custom-str-unique
+20200807234536-rename-custom-str-to-custom-id
